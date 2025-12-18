@@ -1,0 +1,84 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Logs & Runtime Files
+# =========================
+*.log
+*.pid
+*.sock
+
+# =========================
+# OS / Editor Noise
+# =========================
+.DS_Store
+.DS_Store?
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# =========================
+# Build / Cache Artifacts
+# =========================
+build/
+dist/
+.cache/
+
+# =========================
+# Docker
+# =========================
+docker-data/
+docker-volume/
+*.tar
+
+# =========================
+# Frontend / Assets (if built)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Testing / Coverage
+# =========================
+.coverage
+coverage/
+htmlcov/
+
+# =========================
+# Jupyter / Notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Local-only files
+# =========================
+local_settings.py
+
