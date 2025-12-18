@@ -63,14 +63,16 @@
       }
 
       h1 {
-        font-size: 24px;
-        margin: 0 0 6px;
+        font-size: 42px;
+        font-weight: 700;
+        margin: 0 0 12px;
+        letter-spacing: -0.5px;
       }
 
       @media (max-width: 640px) {
         h1 {
-          font-size: 20px;
-          margin: 0 0 4px;
+          font-size: 32px;
+          margin: 0 0 8px;
         }
       }
 
@@ -413,18 +415,18 @@
   </head>
   <body>
     <div class="shell">
-      <h1>Cribbdle – choose your 4 cards</h1>
+      <h1>Cribbdle</h1>
       <p class="subtitle">
-        Click four of the six cards, then score the hand to see how much the
+        Choose four of the six cards, then score the hand to see how much the
         starter card can help or hurt.
       </p>
 
       <div id="cards" class="cards-row" aria-label="Six dealt cards"></div>
 
       <div id="bestKeepSection" style="display: none;">
-        <p class="hint" style="margin-top: 0; margin-bottom: 8px;">
-          <strong>Optimal keep:</strong>
-        </p>
+        <h2 class="subtitle" style="margin-top: 0; margin-bottom: 12px; font-size: 16px; font-weight: 600;">
+          Optimal keep
+        </h2>
         <div id="bestKeepCards" class="cards-row" aria-label="Best keep cards"></div>
       </div>
 
