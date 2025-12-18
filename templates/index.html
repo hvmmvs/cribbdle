@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cribbdle – Pick your hand</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      :root {
+        --bg: #f3f4f6;
+        --bg-shell: #ffffff;
+        --bg-card: #ffffff;
+        --bg-card-selected: #e0f2fe;
+        --border: #d1d5db;
+        --border-strong: #9ca3af;
+        --text: #111827;
+        --muted: #6b7280;
+        --accent: #0ea5e9;
+        --danger: #b91c1c;
+        --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: radial-gradient(circle at top, #e5e7eb 0, #d1d5db 40%, #e5e7eb 100%);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+      }
+
+      .shell {
+        width: 100%;
+        max-width: 760px;
+        background: var(--bg-shell);
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        padding: 22px 22px 18px;
+        box-shadow: var(--shadow-soft);
+      }
+
+      h1 {
+        font-size: 24px;
+        margin: 0 0 6px;
+      }
+
+      .subtitle {
+        margin: 0 0 16px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .cards-row {
+        display: flex;
+        gap: 10px;
+        margin: 10px 0 18px;
+        overflow-x: auto;
+        padding: 6px 0 8px;
+        min-height: 120px; /* Give cards room to lift on hover without feeling cramped */
+        align-items: center;
+        justify-content: center;
+      }
+
+      .card {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        padding: 4px 4px 6px;
+        text-align: center;
+        cursor: pointer;
+        transition: background 0.12s ease-out, border-color 0.12s ease-out, box-shadow 0.12s ease-out;
+        user-select: none;
+        min-width: 70px;
+        max-width: 80px;
+        box-shadow: 0 3px 6px rgba(15, 23, 42, 0.08);
+        position: relative;
+        perspective: 1000px;
+      }
+
+      .card.shuffling {
+        animation: shuffle 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes shuffle {
+        0% {
+          transform: translate(var(--center-offset-x), var(--center-offset-y)) rotate(0deg);
+          z-index: 10;
+        }
+        40% {
+          transform: translate(var(--center-offset-x), var(--center-offset-y)) rotate(0deg);
+          z-index: 10;
+        }
+        50% {
+          transform: translate(var(--center-offset-x), var(--center-offset-y)) rotate(0deg);
+          z-index: 10;
+        }
+        100% {
+          transform: translate(0, 0) rotate(0deg);
+          z-index: 1;
+        }
+      }
+
+      .card:hover {
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.16);
+      }
+
+      .card:hover:not(.shuffling) .card-flip-inner {
+        transform: translateY(-2px) rotateY(180deg);
+      }
+
+      .card.flipped:hover:not(.shuffling) .card-flip-inner {
+        transform: translateY(-2px) rotateY(0deg);
+      }
+
+      .card.shuffling:hover .card-flip-inner {
+        transform: rotateY(180deg);
+      }
+
+      .card.shuffling.flipped:hover .card-flip-inner {
+        transform: rotateY(0deg);
+      }
+
+      .card-flip-inner {
+        position: relative;
+        width: 100%;
+        min-height: 100%;
+        transform-style: preserve-3d;
+        transition: transform 0.6s ease-in-out;
+        transform: rotateY(180deg);
+      }
+
+      .card.flipped .card-flip-inner {
+        transform: rotateY(0deg);
+      }
+
+      .card-front,
+      .card-back {
+        width: 100%;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+
+      .card-front {
+        position: relative;
+      }
+
+      .card-back {
+        transform: rotateY(180deg);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .card-back .card-img {
+        width: 100%;
+        height: auto;
+      }
+
+      .card.selected {
+        background: var(--bg-card-selected);
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.4),
+          0 6px 16px rgba(15, 23, 42, 0.18);
+      }
+
+      .card.match {
+        border-color: #10b981;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4),
+          0 6px 16px rgba(15, 23, 42, 0.18);
+      }
+
+      .card.no-match {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4),
+          0 6px 16px rgba(15, 23, 42, 0.18);
+      }
+
+      .card-code {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .card-img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .card-code {
+        position: relative;
+        z-index: 1;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      button {
+        border-radius: 999px;
+        border: 1px solid var(--border-strong);
+        padding: 7px 14px;
+        font-size: 13px;
+        background: #ffffff;
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: var(--accent);
+        border-color: #0284c7;
+        color: #f9fafb;
+        font-weight: 600;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .status {
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .stats {
+        font-size: 13px;
+        background: #f9fafb;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        padding: 10px 10px 8px;
+      }
+
+      .stats-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+
+      .stats-label {
+        color: var(--muted);
+      }
+
+      .chart-toggle {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        background: #ffffff;
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.12s ease-out;
+      }
+
+      .chart-toggle:hover {
+        background: #f3f4f6;
+      }
+
+      .chart-toggle.active {
+        background: var(--accent);
+        border-color: #0284c7;
+        color: #f9fafb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <h1>Cribbdle – choose your 4 cards</h1>
+      <p class="subtitle">
+        Click four of the six cards, then score the hand to see how much the
+        starter card can help or hurt.
+      </p>
+
+      <div id="cards" class="cards-row" aria-label="Six dealt cards"></div>
+
+      <div id="bestKeepSection" style="display: none;">
+        <p class="hint" style="margin-top: 0; margin-bottom: 8px;">
+          <strong>Optimal keep:</strong>
+        </p>
+        <div id="bestKeepCards" class="cards-row" aria-label="Best keep cards"></div>
+      </div>
+
+      <p class="hint">
+        You can select up to four cards. Click again to deselect. The order
+        doesn't matter.
+      </p>
+
+      <div class="controls">
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+          <input type="checkbox" id="myCribToggle" checked />
+          <span>It's my crib</span>
+        </label>
+        <button id="scoreBtn" class="primary" type="button">
+          Score selected hand
+        </button>
+        <button id="redealBtn" type="button">Re‑deal 6 new cards</button>
+      </div>
+
+      <div id="status" class="status"></div>
+
+      <section class="stats" aria-label="Scoring statistics">
+        <div class="stats-row">
+          <span class="stats-label">Base score (no starter)</span>
+          <span id="stat-base">–</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Average final score</span>
+          <span id="stat-avg-total">–</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Average starter boost</span>
+          <span id="stat-avg-delta">–</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Best possible total</span>
+          <span id="stat-max-total">–</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Worst possible total</span>
+          <span id="stat-min-total">–</span>
+        </div>
+        <div style="margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap;">
+          <button class="chart-toggle" data-chart="histogram" data-section="hand">Histogram</button>
+          <button class="chart-toggle active" data-chart="line" data-section="hand">Line</button>
+          <button class="chart-toggle" data-chart="box" data-section="hand">Box Plot</button>
+        </div>
+        <div id="handChartContainer" style="margin-top: 4px;">
+          <svg id="handChart" width="100%" height="120"></svg>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="Crib statistics" id="cribStatsSection" style="display: none; margin-top: 12px;">
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 6px;">
+          <strong>Crib value</strong> (from your 2 discards)
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Average crib score</span>
+          <span id="stat-crib-avg">–</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Min crib score</span>
+          <span id="stat-crib-min">–</span>
+        </div>
+        <div class="stats-row">
+          <span class="stats-label">Max crib score</span>
+          <span id="stat-crib-max">–</span>
+        </div>
+        <div style="margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap;">
+          <button class="chart-toggle" data-chart="histogram" data-section="crib">Histogram</button>
+          <button class="chart-toggle active" data-chart="line" data-section="crib">Line</button>
+          <button class="chart-toggle" data-chart="box" data-section="crib">Box Plot</button>
+        </div>
+        <div id="cribChartContainer" style="margin-top: 4px;">
+          <svg id="cribChart" width="100%" height="120"></svg>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const cardsEl = document.getElementById("cards");
+      const statusEl = document.getElementById("status");
+      const scoreBtn = document.getElementById("scoreBtn");
+      const redealBtn = document.getElementById("redealBtn");
+
+      const statBase = document.getElementById("stat-base");
+      const statAvgTotal = document.getElementById("stat-avg-total");
+      const statAvgDelta = document.getElementById("stat-avg-delta");
+      const statMaxTotal = document.getElementById("stat-max-total");
+      const statMinTotal = document.getElementById("stat-min-total");
+
+      const statCribAvg = document.getElementById("stat-crib-avg");
+      const statCribMin = document.getElementById("stat-crib-min");
+      const statCribMax = document.getElementById("stat-crib-max");
+      const cribStatsSection = document.getElementById("cribStatsSection");
+
+      const bestKeepSection = document.getElementById("bestKeepSection");
+      const bestKeepCardsEl = document.getElementById("bestKeepCards");
+      const myCribToggle = document.getElementById("myCribToggle");
+
+      let currentCards = [];
+      let bestKeepCards = null;
+      let userSelectedHand = null;
+      const RANK_ORDER = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
+
+      function rankAndSuit(card) {
+        const rank = card[0];
+        const suitCode = card[1];
+        const suitSymbol =
+          { C: "♣", D: "♦", H: "♥", S: "♠" }[suitCode] || suitCode;
+        const suitColor = suitCode === "D" || suitCode === "H" ? "red" : "black";
+        return { rank, suitSymbol, suitColor };
+      }
+
+      const CARD_ASSET_BASE =
+        "/assets/kenney_playing-cards-pack/PNG/Cards (large)";
+      const CARD_BACK_PATH = `${CARD_ASSET_BASE}/card_back.png`;
+
+      function cardImagePath(card) {
+        const rank = card[0];
+        const suitCode = card[1];
+        const suitNameMap = {
+          C: "clubs",
+          D: "diamonds",
+          H: "hearts",
+          S: "spades",
+        };
+        const suitName = suitNameMap[suitCode] || "back";
+        let rankPart;
+        if (rank === "A") rankPart = "A";
+        else if (rank === "T") rankPart = "10";
+        else if (rank === "J" || rank === "Q" || rank === "K") rankPart = rank;
+        else {
+          // 2-9
+          rankPart = rank.padStart(2, "0");
+        }
+        return `${CARD_ASSET_BASE}/card_${suitName}_${rankPart}.png`;
+      }
+
+      function clearStats() {
+        statBase.textContent = "–";
+        statAvgTotal.textContent = "–";
+        statAvgDelta.textContent = "–";
+        statMaxTotal.textContent = "–";
+        statMinTotal.textContent = "–";
+        statCribAvg.textContent = "–";
+        statCribMin.textContent = "–";
+        statCribMax.textContent = "–";
+        cribStatsSection.style.display = "none";
+        const cribSvg = document.getElementById("cribChart");
+        if (cribSvg) {
+          while (cribSvg.firstChild) cribSvg.removeChild(cribSvg.firstChild);
+        }
+        const handSvg = document.getElementById("handChart");
+        if (handSvg) {
+          while (handSvg.firstChild) handSvg.removeChild(handSvg.firstChild);
+        }
+        bestKeepCards = null;
+        userSelectedHand = null;
+        bestKeepSection.style.display = "none";
+        bestKeepCardsEl.innerHTML = "";
+      }
+
+      // Store current chart data for re-rendering on toggle
+      let handChartData = null;
+      let handChartAvg = null;
+      let cribChartData = null;
+      let cribChartAvg = null;
+
+      function renderChart(svgId, distribution, avg, chartType = "histogram") {
+        const svg = d3.select(`#${svgId}`);
+        svg.selectAll("*").remove();
+        if (!distribution || !distribution.length) return;
+
+        const width = parseInt(svg.style("width")) || 260;
+        const height = parseInt(svg.attr("height")) || 120;
+        const margin = { top: 4, right: 6, bottom: 18, left: 24 };
+
+        const values = distribution.map((v) => Number(v) || 0).sort((a, b) => a - b);
+        const g = svg.append("g");
+
+        if (chartType === "histogram") {
+          const counts = {};
+          values.forEach((v) => {
+            counts[v] = (counts[v] || 0) + 1;
+          });
+          const bins = Object.keys(counts)
+            .map((k) => ({ score: Number(k), count: counts[k] }))
+            .sort((a, b) => a.score - b.score);
+
+          const x = d3
+            .scaleBand()
+            .domain(bins.map((b) => b.score))
+            .range([margin.left, width - margin.right])
+            .padding(0.1);
+
+          const y = d3
+            .scaleLinear()
+            .domain([0, d3.max(bins, (b) => b.count) || 1])
+            .nice()
+            .range([height - margin.bottom, margin.top]);
+
+          g.selectAll("rect")
+            .data(bins)
+            .enter()
+            .append("rect")
+            .attr("x", (d) => x(d.score))
+            .attr("y", (d) => y(d.count))
+            .attr("width", x.bandwidth())
+            .attr("height", (d) => y(0) - y(d.count))
+            .attr("fill", "#0ea5e9");
+
+          const xAxis = d3.axisBottom(x).tickSizeOuter(0);
+          g.append("g")
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(xAxis)
+            .selectAll("text")
+            .style("font-size", "9px");
+
+          const yAxis = d3.axisLeft(y).ticks(3).tickSizeOuter(0);
+          g.append("g")
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(yAxis)
+            .selectAll("text")
+            .style("font-size", "9px");
+
+          // Average line
+          if (typeof avg === "number" && !Number.isNaN(avg)) {
+            const avgX = x(Math.round(avg));
+            if (avgX !== undefined) {
+              g.append("line")
+                .attr("x1", avgX + x.bandwidth() / 2)
+                .attr("x2", avgX + x.bandwidth() / 2)
+                .attr("y1", margin.top)
+                .attr("y2", height - margin.bottom)
+                .attr("stroke", "#ef4444")
+                .attr("stroke-width", 1.5)
+                .attr("stroke-dasharray", "3,3");
+            }
+          }
+        } else if (chartType === "line") {
+          const x = d3
+            .scaleLinear()
+            .domain([0, values.length - 1])
+            .range([margin.left, width - margin.right]);
+
+          const y = d3
+            .scaleLinear()
+            .domain(d3.extent(values))
+            .nice()
+            .range([height - margin.bottom, margin.top]);
+
+          const line = d3
+            .line()
+            .x((d, i) => x(i))
+            .y((d) => y(d))
+            .curve(d3.curveMonotoneX);
+
+          g.append("path")
+            .datum(values)
+            .attr("fill", "none")
+            .attr("stroke", "#0ea5e9")
+            .attr("stroke-width", 2)
+            .attr("d", line);
+
+          const xAxis = d3.axisBottom(x).ticks(0).tickSizeOuter(0);
+          g.append("g")
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(xAxis);
+
+          const yAxis = d3.axisLeft(y).ticks(4).tickSizeOuter(0);
+          g.append("g")
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(yAxis)
+            .selectAll("text")
+            .style("font-size", "9px");
+
+          // Average line
+          if (typeof avg === "number" && !Number.isNaN(avg)) {
+            g.append("line")
+              .attr("x1", margin.left)
+              .attr("x2", width - margin.right)
+              .attr("y1", y(avg))
+              .attr("y2", y(avg))
+              .attr("stroke", "#ef4444")
+              .attr("stroke-width", 1.5)
+              .attr("stroke-dasharray", "3,3");
+          }
+        } else if (chartType === "box") {
+          // Calculate quartiles
+          const q1 = d3.quantile(values, 0.25);
+          const q2 = d3.quantile(values, 0.5); // median
+          const q3 = d3.quantile(values, 0.75);
+          const iqr = q3 - q1;
+          const min = Math.max(values[0], q1 - 1.5 * iqr);
+          const max = Math.min(values[values.length - 1], q3 + 1.5 * iqr);
+
+          const xCenter = (margin.left + width - margin.right) / 2;
+          const boxWidth = 40;
+
+          const y = d3
+            .scaleLinear()
+            .domain([Math.min(min, values[0]), Math.max(max, values[values.length - 1])])
+            .nice()
+            .range([height - margin.bottom, margin.top]);
+
+          // Whiskers
+          g.append("line")
+            .attr("x1", xCenter)
+            .attr("x2", xCenter)
+            .attr("y1", y(min))
+            .attr("y2", y(max))
+            .attr("stroke", "#0ea5e9")
+            .attr("stroke-width", 1.5);
+
+          // Box
+          g.append("rect")
+            .attr("x", xCenter - boxWidth / 2)
+            .attr("y", y(q3))
+            .attr("width", boxWidth)
+            .attr("height", y(q1) - y(q3))
+            .attr("fill", "#0ea5e9")
+            .attr("stroke", "#0284c7")
+            .attr("stroke-width", 1);
+
+          // Median line
+          g.append("line")
+            .attr("x1", xCenter - boxWidth / 2)
+            .attr("x2", xCenter + boxWidth / 2)
+            .attr("y1", y(q2))
+            .attr("y2", y(q2))
+            .attr("stroke", "#ffffff")
+            .attr("stroke-width", 2);
+
+          // Min/Max markers
+          g.append("line")
+            .attr("x1", xCenter - boxWidth / 2)
+            .attr("x2", xCenter + boxWidth / 2)
+            .attr("y1", y(min))
+            .attr("y2", y(min))
+            .attr("stroke", "#0ea5e9")
+            .attr("stroke-width", 1.5);
+
+          g.append("line")
+            .attr("x1", xCenter - boxWidth / 2)
+            .attr("x2", xCenter + boxWidth / 2)
+            .attr("y1", y(max))
+            .attr("y2", y(max))
+            .attr("stroke", "#0ea5e9")
+            .attr("stroke-width", 1.5);
+
+          // Outliers
+          values.forEach((v) => {
+            if (v < min || v > max) {
+              g.append("circle")
+                .attr("cx", xCenter)
+                .attr("cy", y(v))
+                .attr("r", 2)
+                .attr("fill", "#0ea5e9");
+            }
+          });
+
+          const yAxis = d3.axisLeft(y).ticks(5).tickSizeOuter(0);
+          g.append("g")
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(yAxis)
+            .selectAll("text")
+            .style("font-size", "9px");
+
+          // Average line
+          if (typeof avg === "number" && !Number.isNaN(avg)) {
+            g.append("line")
+              .attr("x1", margin.left)
+              .attr("x2", width - margin.right)
+              .attr("y1", y(avg))
+              .attr("y2", y(avg))
+              .attr("stroke", "#ef4444")
+              .attr("stroke-width", 1.5)
+              .attr("stroke-dasharray", "3,3");
+          }
+        }
+      }
+
+      function renderHandChart(distribution, avg, chartType = "line") {
+        handChartData = distribution;
+        handChartAvg = avg;
+        renderChart("handChart", distribution, avg, chartType);
+      }
+
+      function renderCribChart(distribution, avg, chartType = "line") {
+        cribChartData = distribution;
+        cribChartAvg = avg;
+        renderChart("cribChart", distribution, avg, chartType);
+      }
+
+      function applyShuffleAnimation(el, container, index) {
+        // Wait for layout to be complete - use double requestAnimationFrame to ensure rendering is done
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const containerRect = container.getBoundingClientRect();
+            const cardRect = el.getBoundingClientRect();
+            
+            // Ensure container has valid dimensions
+            if (containerRect.width === 0 || containerRect.height === 0) {
+              // Fallback: try again after a short delay
+              setTimeout(() => applyShuffleAnimation(el, container, index), 50);
+              return;
+            }
+            
+            const containerCenterX = containerRect.width / 2;
+            const containerCenterY = containerRect.height / 2;
+            
+            // Calculate the card's center position relative to container
+            const cardCenterX = cardRect.left - containerRect.left + cardRect.width / 2;
+            const cardCenterY = cardRect.top - containerRect.top + cardRect.height / 2;
+            
+            // Calculate offset from container center to card's final position
+            const offsetX = cardCenterX - containerCenterX;
+            const offsetY = cardCenterY - containerCenterY;
+
+            // To move card to center, we need to translate by the negative offset
+            const centerOffsetX = -offsetX;
+            const centerOffsetY = -offsetY;
+
+            // Apply CSS custom properties for the animation
+            // Start at center, stay at center, then move to final position
+            el.style.setProperty("--center-offset-x", `${centerOffsetX}px`);
+            el.style.setProperty("--center-offset-y", `${centerOffsetY}px`);
+
+            // Start shuffling animation
+            el.classList.add("shuffling");
+            
+            // Remove shuffling class after animation completes
+            setTimeout(() => {
+              el.classList.remove("shuffling");
+              el.style.removeProperty("--center-offset-x");
+              el.style.removeProperty("--center-offset-y");
+            }, 800);
+          });
+        });
+      }
+
+      function normalizeHandByRanks(hand) {
+        // Extract ranks and sort them for comparison
+        return hand.map(c => c.trim().toUpperCase()[0]).sort((a, b) => {
+          return RANK_ORDER.indexOf(a) - RANK_ORDER.indexOf(b);
+        });
+      }
+
+      function renderBestKeepCards(cards) {
+        bestKeepCardsEl.innerHTML = "";
+        if (!cards || cards.length !== 4) return;
+
+        // Normalize user's selected hand by ranks for comparison
+        const userHandRanks = userSelectedHand 
+          ? normalizeHandByRanks(userSelectedHand)
+          : [];
+        
+        // Normalize best keep cards by ranks
+        const bestKeepRanks = normalizeHandByRanks(cards);
+        
+        // Create a map of rank counts in user's hand for matching
+        const userRankCounts = {};
+        if (userSelectedHand) {
+          userSelectedHand.forEach(card => {
+            const rank = card.trim().toUpperCase()[0];
+            userRankCounts[rank] = (userRankCounts[rank] || 0) + 1;
+          });
+        }
+
+        // Sort by rank for consistent display
+        const sorted = [...cards].sort((a, b) => {
+          const ra = a[0];
+          const rb = b[0];
+          return RANK_ORDER.indexOf(ra) - RANK_ORDER.indexOf(rb);
+        });
+
+        // Track which ranks we've matched to handle duplicates correctly
+        const matchedRanks = {};
+        sorted.forEach((card, index) => {
+          const { rank, suitSymbol, suitColor } = rankAndSuit(card);
+          const el = document.createElement("div");
+          el.className = "card";
+          el.dataset.card = card;
+          el.dataset.suitColor = suitColor;
+          
+          // Check if this rank matches user's selection
+          // We need to handle duplicates: if user has two 5s and best keep has two 5s,
+          // we should match them up correctly
+          const cardRank = card.trim().toUpperCase()[0];
+          const userCount = userRankCounts[cardRank] || 0;
+          const matchedCount = matchedRanks[cardRank] || 0;
+          
+          if (userCount > matchedCount) {
+            // This rank exists in user's hand and we haven't matched all instances yet
+            el.classList.add("match");
+            matchedRanks[cardRank] = matchedCount + 1;
+          } else {
+            el.classList.add("no-match");
+          }
+          
+          el.innerHTML = `
+            <div class="card-flip-inner">
+              <div class="card-front">
+                <img class="card-img" src="${cardImagePath(
+                  card
+                )}" alt="${rank}${suitSymbol}" loading="lazy" />
+                <div class="card-code">${card}</div>
+              </div>
+              <div class="card-back">
+                <img class="card-img" src="${CARD_BACK_PATH}" alt="Card back" loading="lazy" />
+              </div>
+            </div>
+          `;
+          bestKeepCardsEl.appendChild(el);
+          
+          // Apply shuffle animation
+          applyShuffleAnimation(el, bestKeepCardsEl, index);
+          
+          // Trigger flip animation with staggered delay
+          setTimeout(() => {
+            el.classList.add("flipped");
+          }, index * 100 + 200);
+        });
+      }
+
+      function setStatus(message, isError = false) {
+        statusEl.textContent = message || "";
+        statusEl.classList.toggle("error", !!isError);
+      }
+
+      function renderCards() {
+        cardsEl.innerHTML = "";
+        currentCards.forEach((card, index) => {
+          const { rank, suitSymbol, suitColor } = rankAndSuit(card);
+          const el = document.createElement("button");
+          el.type = "button";
+          el.className = "card";
+          el.dataset.card = card;
+          el.dataset.index = String(index);
+          el.draggable = true;
+          el.dataset.suitColor = suitColor;
+          el.innerHTML = `
+            <div class="card-flip-inner">
+              <div class="card-front">
+                <img class="card-img" src="${cardImagePath(
+                  card
+                )}" alt="${rank}${suitSymbol}" loading="lazy" />
+                <div class="card-code">${card}</div>
+              </div>
+              <div class="card-back">
+                <img class="card-img" src="${CARD_BACK_PATH}" alt="Card back" loading="lazy" />
+              </div>
+            </div>
+          `;
+          // Selection
+          el.addEventListener("click", () => {
+            const selected = cardsEl.querySelectorAll(".card.selected").length;
+            if (el.classList.contains("selected")) {
+              el.classList.remove("selected");
+            } else if (selected < 4) {
+              el.classList.add("selected");
+            }
+          });
+
+          // Drag and drop reordering
+          el.addEventListener("dragstart", (event) => {
+            event.dataTransfer.setData("text/plain", el.dataset.index || "0");
+          });
+          el.addEventListener("dragover", (event) => {
+            event.preventDefault();
+          });
+          el.addEventListener("drop", (event) => {
+            event.preventDefault();
+            const fromIndex = parseInt(
+              event.dataTransfer.getData("text/plain"),
+              10
+            );
+            const toIndex = parseInt(el.dataset.index || "0", 10);
+            if (
+              Number.isNaN(fromIndex) ||
+              Number.isNaN(toIndex) ||
+              fromIndex === toIndex
+            ) {
+              return;
+            }
+
+            // Reorder underlying cards array.
+            const updated = [...currentCards];
+            const [moved] = updated.splice(fromIndex, 1);
+            updated.splice(toIndex, 0, moved);
+            currentCards = updated;
+            renderCards();
+          });
+          cardsEl.appendChild(el);
+          
+          // Apply shuffle animation
+          applyShuffleAnimation(el, cardsEl, index);
+          
+          // Trigger flip animation with staggered delay
+          setTimeout(() => {
+            el.classList.add("flipped");
+          }, index * 100 + 200);
+        });
+      }
+
+      async function fetchDeal() {
+        setStatus("Dealing six cards…");
+        clearStats();
+        // Clear any selected cards
+        cardsEl.querySelectorAll(".card.selected").forEach((el) => {
+          el.classList.remove("selected");
+        });
+        scoreBtn.disabled = true;
+        redealBtn.disabled = true;
+        try {
+          const res = await fetch("/api/deal");
+          if (!res.ok) throw new Error("Deal failed");
+          const data = await res.json();
+          currentCards = (data.cards || []).slice();
+          // Sort by rank using cribbage order.
+          currentCards.sort((a, b) => {
+            const ra = a[0];
+            const rb = b[0];
+            return RANK_ORDER.indexOf(ra) - RANK_ORDER.indexOf(rb);
+          });
+          renderCards();
+          setStatus("Pick any four cards, then score the hand.");
+        } catch (err) {
+          console.error(err);
+          setStatus("Could not deal cards. Try reloading the page.", true);
+        } finally {
+          scoreBtn.disabled = false;
+          redealBtn.disabled = false;
+        }
+      }
+
+      async function submitScore() {
+        const selectedEls = Array.from(
+          cardsEl.querySelectorAll(".card.selected")
+        );
+        if (selectedEls.length !== 4) {
+          setStatus("Please select exactly four cards before scoring.", true);
+          return;
+        }
+        const hand = selectedEls.map((el) => el.dataset.card);
+
+        setStatus("Scoring hand…");
+        scoreBtn.disabled = true;
+        
+        // Hide crib stats section initially
+        cribStatsSection.style.display = "none";
+        
+        // First, get hand stats (fast)
+        try {
+          const res = await fetch("/api/score", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              hand,
+              six_cards: currentCards,
+              is_crib: false,
+              my_crib: myCribToggle.checked,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || "Scoring failed");
+          }
+
+          // Display hand stats immediately
+          statBase.textContent = data.base_score.toFixed(0);
+          statAvgTotal.textContent = data.avg_total.toFixed(2);
+          statAvgDelta.textContent = data.avg_delta.toFixed(2);
+          statMaxTotal.textContent = data.max_total.toFixed(0);
+          statMinTotal.textContent = data.min_total.toFixed(0);
+
+          // Display hand distribution chart
+          if (data.hand_distribution) {
+            renderHandChart(data.hand_distribution, data.avg_total);
+          }
+
+          // Show comparison message and display best keep
+          bestKeepCards = data.best_keep;
+          userSelectedHand = hand; // Store user's selection for comparison
+          renderBestKeepCards(bestKeepCards);
+          bestKeepSection.style.display = "block";
+
+          if (data.is_optimal) {
+            setStatus("🎉 Hooray! Correct keep! 🎉");
+          } else {
+            setStatus(
+              `Not the best keep. Optimal keep shown below (avg ${data.best_avg_total.toFixed(2)})`
+            );
+          }
+
+          // Now calculate crib stats (slow) in the background
+          setStatus("Computing crib stats…");
+          try {
+            const cribRes = await fetch("/api/score/crib", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                hand,
+                six_cards: currentCards,
+              }),
+            });
+            const cribData = await cribRes.json();
+            if (cribRes.ok && cribData.crib_stats) {
+              statCribAvg.textContent = cribData.crib_stats.avg_score.toFixed(2);
+              statCribMin.textContent = cribData.crib_stats.min_score.toFixed(0);
+              statCribMax.textContent = cribData.crib_stats.max_score.toFixed(0);
+              cribStatsSection.style.display = "block";
+              renderCribChart(
+                cribData.crib_stats.distribution,
+                cribData.crib_stats.avg_score
+              );
+              setStatus(
+                data.is_optimal
+                  ? "🎉 Hooray! Correct keep! 🎉"
+                  : `Not the best keep. Optimal keep shown below (avg ${data.best_avg_total.toFixed(2)})`
+              );
+            }
+          } catch (cribErr) {
+            console.error("Crib stats error:", cribErr);
+            // Don't show error to user, just skip crib stats
+          }
+        } catch (err) {
+          console.error(err);
+          setStatus(err.message || "Error while scoring hand.", true);
+        } finally {
+          scoreBtn.disabled = false;
+        }
+      }
+
+      scoreBtn.addEventListener("click", submitScore);
+      redealBtn.addEventListener("click", fetchDeal);
+
+      // Chart toggle handlers
+      document.querySelectorAll(".chart-toggle").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const chartType = btn.dataset.chart;
+          const section = btn.dataset.section;
+
+          // Update active state
+          document
+            .querySelectorAll(`.chart-toggle[data-section="${section}"]`)
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          // Re-render chart with new type
+          if (section === "hand" && handChartData) {
+            renderHandChart(handChartData, handChartAvg, chartType);
+          } else if (section === "crib" && cribChartData) {
+            renderCribChart(cribChartData, cribChartAvg, chartType);
+          }
+        });
+      });
+
+      // Initial deal when page loads.
+      fetchDeal();
+    </script>
+  </body>
+  </html>
+
+
