@@ -1,3 +1,7 @@
+## View it here
+
+https://cribbdle.com/
+
 ## Cribbdle – ultra-light daily cribbage page
 
 This is a tiny Flask app that serves a single-page shell for a daily cribbage puzzle.
