@@ -523,7 +523,6 @@
 
       const bestKeepSection = document.getElementById("bestKeepSection");
       const bestKeepCardsEl = document.getElementById("bestKeepCards");
-      const myCribToggle = document.getElementById("myCribToggle");
 
       let currentCards = [];
       let bestKeepCards = null;
@@ -1087,7 +1086,7 @@
               hand,
               six_cards: currentCards,
               is_crib: false,
-              my_crib: myCribToggle.checked,
+              my_crib: true, // Default to true (was previously controlled by checkbox)
             }),
           });
           const data = await res.json();
