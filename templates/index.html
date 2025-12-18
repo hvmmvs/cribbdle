@@ -411,11 +411,227 @@
         border-color: #0284c7;
         color: #f9fafb;
       }
+
+      /* Help icon */
+      .help-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-left: 8px;
+        vertical-align: middle;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        transition: background 0.2s ease;
+      }
+
+      .help-icon:hover {
+        background: #0284c7;
+      }
+
+      @media (max-width: 640px) {
+        .help-icon {
+          width: 28px;
+          height: 28px;
+          font-size: 16px;
+          margin-left: 6px;
+        }
+      }
+
+      /* Modal */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        background: var(--bg-shell);
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        padding: 24px;
+      }
+
+      @media (max-width: 640px) {
+        .modal {
+          padding: 20px 16px;
+          border-radius: 12px;
+          max-height: 95vh;
+        }
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      @media (max-width: 640px) {
+        .modal-header h2 {
+          font-size: 20px;
+        }
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .modal-close:hover {
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .modal-content {
+        line-height: 1.6;
+      }
+
+      .modal-content h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 24px 0 12px;
+        color: var(--text);
+      }
+
+      .modal-content h3:first-child {
+        margin-top: 0;
+      }
+
+      @media (max-width: 640px) {
+        .modal-content h3 {
+          font-size: 16px;
+          margin: 20px 0 10px;
+        }
+      }
+
+      .modal-content p {
+        margin: 0 0 16px;
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      @media (max-width: 640px) {
+        .modal-content p {
+          font-size: 13px;
+        }
+      }
+
+      .modal-content ul {
+        margin: 0 0 16px;
+        padding-left: 20px;
+      }
+
+      .modal-content li {
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      @media (max-width: 640px) {
+        .modal-content li {
+          font-size: 13px;
+        }
+      }
+
+      .example-hand {
+        display: flex;
+        gap: 8px;
+        margin: 12px 0 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .example-hand .card {
+        min-width: 60px;
+        max-width: 70px;
+        pointer-events: none;
+        cursor: default;
+      }
+
+      @media (max-width: 640px) {
+        .example-hand .card {
+          min-width: 55px;
+          max-width: 65px;
+        }
+      }
+
+      .example-hand .card-flip-inner {
+        transform: rotateY(0deg) !important;
+      }
+
+      .example-hand .card:hover {
+        box-shadow: 0 3px 6px rgba(15, 23, 42, 0.08);
+      }
+
+      .example-hand .card:hover .card-flip-inner {
+        transform: rotateY(0deg) !important;
+      }
+
+      .example-explanation {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+        font-style: italic;
+      }
+
+      @media (max-width: 640px) {
+        .example-explanation {
+          font-size: 12px;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="shell">
-      <h1>Cribbdle</h1>
+      <h1>
+        Cribbdle
+        <span class="help-icon" id="helpIcon" aria-label="Help">?</span>
+      </h1>
       <p class="subtitle">
         Choose four of the six cards, then score the hand to see how much the
         starter card can help or hurt.
@@ -504,6 +720,69 @@
           <svg id="cribChart" width="100%" height="120" style="max-width: 100%;"></svg>
         </div>
       </section>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>How Cribbage Hands Are Scored</h2>
+          <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+        </div>
+        <div class="modal-content">
+          <p>
+            In cribbage, you score points by finding combinations in your 4-card hand plus the starter card (5 cards total).
+          </p>
+
+          <h3>1. Pairs</h3>
+          <p>Two cards of the same rank = 2 points</p>
+          <div class="example-hand" id="examplePairs"></div>
+          <p class="example-explanation">Example: Two 5s = 2 points</p>
+
+          <h3>2. Three of a Kind</h3>
+          <p>Three cards of the same rank = 6 points</p>
+          <div class="example-hand" id="exampleThreeKind"></div>
+          <p class="example-explanation">Example: Three 7s = 6 points</p>
+
+          <h3>3. Four of a Kind</h3>
+          <p>Four cards of the same rank = 12 points</p>
+          <div class="example-hand" id="exampleFourKind"></div>
+          <p class="example-explanation">Example: Four Jacks = 12 points</p>
+
+          <h3>4. Runs</h3>
+          <p>Three or more consecutive ranks = 1 point per card</p>
+          <div class="example-hand" id="exampleRun3"></div>
+          <p class="example-explanation">Example: 5-6-7 = 3 points</p>
+          <div class="example-hand" id="exampleRun4"></div>
+          <p class="example-explanation">Example: 4-5-6-7 = 4 points</p>
+          <div class="example-hand" id="exampleRun5"></div>
+          <p class="example-explanation">Example: 3-4-5-6-7 = 5 points</p>
+
+          <h3>5. Flushes</h3>
+          <p>Four cards of the same suit (in hand) = 4 points</p>
+          <p>Five cards of the same suit (hand + starter) = 5 points</p>
+          <div class="example-hand" id="exampleFlush4"></div>
+          <p class="example-explanation">Example: Four hearts in hand = 4 points</p>
+
+          <h3>6. His Nobs</h3>
+          <p>Jack of the same suit as the starter card = 1 point</p>
+          <div class="example-hand" id="exampleNobs"></div>
+          <p class="example-explanation">Example: Hand has Jack of hearts, starter is Queen of hearts = 1 point</p>
+
+          <h3>7. 15s</h3>
+          <p>Any combination of cards that add up to 15 = 2 points</p>
+          <div class="example-hand" id="example15"></div>
+          <p class="example-explanation">Example: 5 + King = 15 (2 points), or 7 + 8 = 15 (2 points). Multiple 15s can be scored!</p>
+
+          <h3>Important Notes</h3>
+          <ul>
+            <li>Cards can be used in multiple combinations (e.g., a pair can also be part of a run)</li>
+            <li>Face cards (J, Q, K) are worth 10 points for 15s</li>
+            <li>Aces are worth 1 point for 15s</li>
+            <li>All combinations are counted, so a hand can score many points!</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -1183,6 +1462,70 @@
             renderCribChart(cribChartData, cribChartAvg, chartType);
           }
         });
+      });
+
+      // Help modal functionality
+      const helpIcon = document.getElementById("helpIcon");
+      const helpModal = document.getElementById("helpModal");
+      const modalClose = document.getElementById("modalClose");
+
+      function renderExampleCards(containerId, cards) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = "";
+        
+        cards.forEach((card) => {
+          const { rank, suitSymbol } = rankAndSuit(card);
+          const el = document.createElement("div");
+          el.className = "card";
+          el.dataset.card = card;
+          el.innerHTML = `
+            <div class="card-flip-inner">
+              <div class="card-front">
+                <img class="card-img" src="${cardImagePath(card)}" alt="${rank}${suitSymbol}" loading="lazy" />
+                <div class="card-code">${card}</div>
+              </div>
+            </div>
+          `;
+          container.appendChild(el);
+        });
+      }
+
+      function openHelpModal() {
+        helpModal.classList.add("active");
+        document.body.style.overflow = "hidden";
+        
+        // Render example cards
+        renderExampleCards("examplePairs", ["5H", "5D"]);
+        renderExampleCards("exampleThreeKind", ["7C", "7D", "7S"]);
+        renderExampleCards("exampleFourKind", ["JC", "JD", "JH", "JS"]);
+        renderExampleCards("exampleRun3", ["5C", "6D", "7H"]);
+        renderExampleCards("exampleRun4", ["4C", "5D", "6H", "7S"]);
+        renderExampleCards("exampleRun5", ["3C", "4D", "5H", "6S", "7C"]);
+        renderExampleCards("exampleFlush4", ["2H", "5H", "8H", "KH"]);
+        renderExampleCards("exampleNobs", ["JH", "AH", "5H", "9H"]); // Hand with Jack of hearts
+        // Note: Starter would be QH (shown in explanation text)
+        renderExampleCards("example15", ["5C", "KD", "7H", "8S"]); // 5+10=15, 7+8=15
+      }
+
+      function closeHelpModal() {
+        helpModal.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+
+      helpIcon.addEventListener("click", openHelpModal);
+      modalClose.addEventListener("click", closeHelpModal);
+      helpModal.addEventListener("click", (e) => {
+        if (e.target === helpModal) {
+          closeHelpModal();
+        }
+      });
+
+      // Close modal on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && helpModal.classList.contains("active")) {
+          closeHelpModal();
+        }
       });
 
       // Initial deal when page loads.
