@@ -25,10 +25,10 @@ From the project root:
 ```bash
 export FLASK_APP=app:app
 export FLASK_ENV=development  # optional, for auto-reload / debug
-flask run --host=0.0.0.0 --port=5000
+flask run --host=0.0.0.0 --port=5555
 ```
 
-Then open `http://127.0.0.1:5000` in your browser.
+Then open `http://127.0.0.1:5555` in your browser.
 
 Alternatively, you can just run:
 
