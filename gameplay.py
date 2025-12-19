@@ -92,6 +92,153 @@ def _score_core(all_cards: list[tuple[str, str]]) -> int:
     return total_points
 
 
+def get_scoring_breakdown(cards: Iterable[str], *, is_crib: bool = False) -> dict:
+    """
+    Get a detailed breakdown of how a hand is scored.
+    
+    Returns a dict with:
+        - "total": total score
+        - "fifteens": list of 15 combinations, each with {"cards": [...], "points": 2}
+        - "pairs": list of pairs, each with {"cards": [...], "points": 2}
+        - "runs": list of runs, each with {"cards": [...], "points": int}
+        - "flush": {"cards": [...], "points": int} or None
+        - "knobs": {"card": str, "points": 1} or None
+    """
+    cards = list(cards)
+    if len(cards) not in (4, 5):
+        raise ValueError("Cribbage hand must have 4 or 5 cards")
+    
+    parsed = [_parse_card(c) for c in cards]
+    
+    if len(parsed) == 5:
+        hand_cards = parsed[:4]
+        starter = parsed[4]
+    else:
+        hand_cards = parsed
+        starter = None
+    
+    all_cards = hand_cards + ([starter] if starter else [])
+    card_strings = cards[:4] + ([cards[4]] if starter else [])
+    
+    breakdown = {
+        "total": 0,
+        "fifteens": [],
+        "pairs": [],
+        "runs": [],
+        "flush": None,
+        "knobs": None,
+    }
+    
+    # Fifteens
+    values = [RANK_TO_VALUE_FOR_15[r] for r, _ in all_cards]
+    for r in range(2, len(values) + 1):
+        for combo_indices in combinations(range(len(values)), r):
+            combo_values = [values[i] for i in combo_indices]
+            if sum(combo_values) == 15:
+                combo_cards = [card_strings[i] for i in combo_indices]
+                breakdown["fifteens"].append({"cards": combo_cards, "points": 2})
+                breakdown["total"] += 2
+    
+    # Pairs
+    rank_counts = Counter(r for r, _ in all_cards)
+    for rank, count in rank_counts.items():
+        if count >= 2:
+            # Find all cards with this rank
+            rank_cards = [card_strings[i] for i, (r, _) in enumerate(all_cards) if r == rank]
+            # Generate all pairs
+            for pair in combinations(rank_cards, 2):
+                breakdown["pairs"].append({"cards": list(pair), "points": 2})
+                breakdown["total"] += 2
+    
+    # Runs
+    index_counts = Counter(RANK_ORDER.index(r) for r, _ in all_cards)
+    distinct_indices: List[int] = sorted(index_counts.keys())
+    
+    def _get_runs(indices: List[int], counts: Counter) -> List[dict]:
+        runs = []
+        if not indices:
+            return runs
+        
+        start = 0
+        while start < len(indices):
+            end = start
+            while end + 1 < len(indices) and indices[end + 1] == indices[end] + 1:
+                end += 1
+            
+            segment = indices[start : end + 1]
+            length = len(segment)
+            if length >= 3:
+                multiplicity = 1
+                for idx in segment:
+                    multiplicity *= counts[idx]
+                
+                # Get all cards in this run
+                run_cards = []
+                for idx in segment:
+                    rank = RANK_ORDER[idx]
+                    # Find all cards with this rank
+                    for i, (r, _) in enumerate(all_cards):
+                        if r == rank:
+                            run_cards.append(card_strings[i])
+                
+                # Generate all combinations accounting for multiplicity
+                # For simplicity, we'll show one representative run
+                # The actual points = length * multiplicity
+                runs.append({
+                    "cards": run_cards[:length],  # Show one instance of the run
+                    "points": length * multiplicity,
+                    "length": length,
+                    "multiplicity": multiplicity,
+                })
+            
+            start = end + 1
+        
+        return runs
+    
+    runs = _get_runs(distinct_indices, index_counts)
+    for run in runs:
+        breakdown["runs"].append(run)
+        breakdown["total"] += run["points"]
+    
+    # Flush
+    hand_suits = [s for _, s in hand_cards]
+    flush_points = 0
+    flush_cards = None
+    
+    if len(hand_cards) == 4 and len(set(hand_suits)) == 1:
+        if starter is None:
+            flush_points = 4
+            flush_cards = card_strings[:4]
+        else:
+            if is_crib:
+                starter_suit = starter[1]
+                if starter_suit == hand_suits[0]:
+                    flush_points = 5
+                    flush_cards = card_strings
+            else:
+                flush_points = 4
+                flush_cards = card_strings[:4]
+                starter_suit = starter[1]
+                if starter_suit == hand_suits[0]:
+                    flush_points = 5
+                    flush_cards = card_strings
+    
+    if flush_points > 0:
+        breakdown["flush"] = {"cards": flush_cards, "points": flush_points}
+        breakdown["total"] += flush_points
+    
+    # Knobs
+    if starter is not None:
+        starter_suit = starter[1]
+        for i, (r, s) in enumerate(hand_cards):
+            if r == "J" and s == starter_suit:
+                breakdown["knobs"] = {"card": card_strings[i], "points": 1}
+                breakdown["total"] += 1
+                break
+    
+    return breakdown
+
+
 def score_hand(cards: Iterable[str], *, is_crib: bool = False) -> int:
     """
     Compute the cribbage score for a hand.

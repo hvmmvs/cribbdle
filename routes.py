@@ -5,7 +5,7 @@ from typing import List
 
 from flask import Blueprint, jsonify, render_template, request
 
-from gameplay import best_keep_from_six, crib_outcome_stats, starter_outcome_stats
+from gameplay import best_keep_from_six, crib_outcome_stats, get_scoring_breakdown, starter_outcome_stats
 
 
 bp = Blueprint("main", __name__)
@@ -176,6 +176,38 @@ def api_score_crib():
         }
 
         return jsonify(response)
+    except Exception as exc:  # pragma: no cover - defensive
+        return jsonify({"error": str(exc)}), 400
+
+
+@bp.route("/api/score/breakdown", methods=["POST"])
+def api_score_breakdown():
+    """
+    Get detailed scoring breakdown for a hand.
+    
+    Expects JSON like:
+        {
+          "hand": ["5C", "5D", "6H", "7S"],
+          "is_crib": false
+        }
+    """
+    data = request.get_json(silent=True) or {}
+    hand = data.get("hand") or []
+    is_crib = bool(data.get("is_crib", False))
+    
+    if not isinstance(hand, list) or len(hand) != 4:
+        return (
+            jsonify(
+                {
+                    "error": "Request must include 'hand' as a list of 4 card codes."
+                }
+            ),
+            400,
+        )
+    
+    try:
+        breakdown = get_scoring_breakdown(hand, is_crib=is_crib)
+        return jsonify(breakdown)
     except Exception as exc:  # pragma: no cover - defensive
         return jsonify({"error": str(exc)}), 400
 

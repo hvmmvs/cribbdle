@@ -243,6 +243,63 @@
           0 6px 16px rgba(15, 23, 42, 0.18);
       }
 
+      .card.scoring-highlight {
+        animation: scoringPulse 1s ease-in-out infinite;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5),
+          0 8px 20px rgba(15, 23, 42, 0.25);
+        z-index: 10;
+        transform: scale(1.05);
+      }
+
+      @keyframes scoringPulse {
+        0%, 100% {
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5),
+            0 8px 20px rgba(15, 23, 42, 0.25);
+        }
+        50% {
+          box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.7),
+            0 12px 24px rgba(15, 23, 42, 0.35);
+        }
+      }
+
+      .scoring-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+      }
+
+      .scoring-popup {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--accent);
+        pointer-events: none;
+        animation: popupFade 0.5s ease-out;
+      }
+
+      @keyframes popupFade {
+        0% {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.9);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
       .card-code {
         margin-top: 6px;
         font-size: 11px;
@@ -342,6 +399,7 @@
       .status {
         font-size: 13px;
         margin-bottom: 4px;
+        min-height: 20px;
       }
 
       @media (max-width: 640px) {
@@ -355,19 +413,161 @@
         color: var(--danger);
       }
 
+      .status.success {
+        color: #10b981;
+        font-weight: 500;
+      }
+
+      .status.info {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .feedback-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 12px;
+      }
+
+      .feedback-badge.success {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      .feedback-badge.info {
+        background: #f3f4f6;
+        color: var(--text);
+      }
+
+      @media (max-width: 640px) {
+        .feedback-badge {
+          font-size: 12px;
+          padding: 5px 10px;
+        }
+      }
+
       .stats {
         font-size: 13px;
         background: #f9fafb;
         border-radius: 10px;
         border: 1px solid var(--border);
-        padding: 10px 10px 8px;
+        padding: 16px;
       }
 
       @media (max-width: 640px) {
         .stats {
           font-size: 12px;
-          padding: 12px 10px 10px;
+          padding: 14px 12px;
           border-radius: 8px;
+        }
+      }
+
+      .stats-header {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      @media (max-width: 640px) {
+        .stats-header {
+          font-size: 13px;
+          margin-bottom: 12px;
+        }
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      @media (max-width: 640px) {
+        .stats-grid {
+          grid-template-columns: 1fr;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        transition: box-shadow 0.2s ease;
+      }
+
+      .stat-card:hover {
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      }
+
+      @media (max-width: 640px) {
+        .stat-card {
+          padding: 10px;
+        }
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        font-weight: 500;
+      }
+
+      @media (max-width: 640px) {
+        .stat-label {
+          font-size: 10px;
+          margin-bottom: 4px;
+        }
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.2;
+      }
+
+      @media (max-width: 640px) {
+        .stat-value {
+          font-size: 20px;
+        }
+      }
+
+      .stat-value.highlight {
+        color: var(--accent);
+      }
+
+      .stat-value.positive {
+        color: #10b981;
+      }
+
+      .stat-value.negative {
+        color: var(--muted);
+      }
+
+      .stat-description {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+        line-height: 1.3;
+      }
+
+      @media (max-width: 640px) {
+        .stat-description {
+          font-size: 10px;
         }
       }
 
@@ -634,7 +834,7 @@
       </h1>
       <p class="subtitle">
         Choose four of the six cards, then score the hand to see how much the
-        starter card can help or hurt.
+        flipped card can help or hurt.
       </p>
 
       <div id="cards" class="cards-row" aria-label="Six dealt cards"></div>
@@ -652,10 +852,10 @@
       </p>
 
       <div class="controls">
-        <!-- <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;">
-          <input type="checkbox" id="myCribToggle" checked />
-          <span>It's my crib</span>
-        </label> -->
+        <label style="display: none; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;">
+          <input type="checkbox" id="animationToggle" />
+          <span>Show scoring animation</span>
+        </label>
         <button id="scoreBtn" class="primary" type="button">
           Score selected hand
         </button>
@@ -663,53 +863,69 @@
       </div>
 
       <div id="status" class="status"></div>
+      <div id="feedback" style="margin-bottom: 12px;"></div>
 
       <section class="stats" aria-label="Scoring statistics">
-        <div class="stats-row">
-          <span class="stats-label">Base score (no starter)</span>
-          <span id="stat-base">–</span>
+        <div class="stats-header">
+          <span>Hand Analysis</span>
         </div>
-        <div class="stats-row">
-          <span class="stats-label">Average final score</span>
-          <span id="stat-avg-total">–</span>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Hand Value</div>
+            <div class="stat-value" id="stat-base">–</div>
+            <div class="stat-description">Your 4 cards without flipped card</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Expected Score</div>
+            <div class="stat-value highlight" id="stat-avg-total">–</div>
+            <div class="stat-description">Average across all possible flipped cards</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Flipped Card Bonus</div>
+            <div class="stat-value positive" id="stat-avg-delta">–</div>
+            <div class="stat-description">Average points added by flipped card</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Best Case</div>
+            <div class="stat-value positive" id="stat-max-total">–</div>
+            <div class="stat-description">Highest possible score</div>
+          </div>
+          <div class="stat-card" style="grid-column: 1 / -1;">
+            <div class="stat-label">Worst Case</div>
+            <div class="stat-value negative" id="stat-min-total">–</div>
+            <div class="stat-description">Lowest possible score</div>
+          </div>
         </div>
-        <div class="stats-row">
-          <span class="stats-label">Average starter boost</span>
-          <span id="stat-avg-delta">–</span>
-        </div>
-        <div class="stats-row">
-          <span class="stats-label">Best possible total</span>
-          <span id="stat-max-total">–</span>
-        </div>
-        <div class="stats-row">
-          <span class="stats-label">Worst possible total</span>
-          <span id="stat-min-total">–</span>
-        </div>
-        <div style="margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap;">
+        <div style="margin-top: 12px; display: flex; gap: 4px; flex-wrap: wrap;">
           <button class="chart-toggle" data-chart="histogram" data-section="hand">Histogram</button>
           <button class="chart-toggle active" data-chart="line" data-section="hand">Line</button>
           <button class="chart-toggle" data-chart="box" data-section="hand">Box Plot</button>
         </div>
-        <div id="handChartContainer" style="margin-top: 4px;">
+        <div id="handChartContainer" style="margin-top: 8px;">
           <svg id="handChart" width="100%" height="120" style="max-width: 100%;"></svg>
         </div>
       </section>
 
       <section class="stats" aria-label="Crib statistics" id="cribStatsSection" style="display: none; margin-top: 12px;">
-        <div style="font-size: 12px; color: var(--muted); margin-bottom: 6px;">
-          <strong>Crib value</strong> (from your 2 discards)
+        <div class="stats-header">
+          <span>Crib Analysis</span>
         </div>
-        <div class="stats-row">
-          <span class="stats-label">Average crib score</span>
-          <span id="stat-crib-avg">–</span>
-        </div>
-        <div class="stats-row">
-          <span class="stats-label">Min crib score</span>
-          <span id="stat-crib-min">–</span>
-        </div>
-        <div class="stats-row">
-          <span class="stats-label">Max crib score</span>
-          <span id="stat-crib-max">–</span>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Expected Crib</div>
+            <div class="stat-value highlight" id="stat-crib-avg">–</div>
+            <div class="stat-description">Average score from your discards</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Minimum</div>
+            <div class="stat-value negative" id="stat-crib-min">–</div>
+            <div class="stat-description">Lowest possible crib score</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Maximum</div>
+            <div class="stat-value positive" id="stat-crib-max">–</div>
+            <div class="stat-description">Highest possible crib score</div>
+          </div>
         </div>
         <div style="margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap;">
           <button class="chart-toggle" data-chart="histogram" data-section="crib">Histogram</button>
@@ -788,6 +1004,7 @@
     <script>
       const cardsEl = document.getElementById("cards");
       const statusEl = document.getElementById("status");
+      const feedbackEl = document.getElementById("feedback");
       const scoreBtn = document.getElementById("scoreBtn");
       const redealBtn = document.getElementById("redealBtn");
 
@@ -804,6 +1021,7 @@
 
       const bestKeepSection = document.getElementById("bestKeepSection");
       const bestKeepCardsEl = document.getElementById("bestKeepCards");
+      const animationToggle = document.getElementById("animationToggle");
 
       let currentCards = [];
       let bestKeepCards = null;
@@ -846,14 +1064,20 @@
 
       function clearStats() {
         statBase.textContent = "–";
+        statBase.className = "stat-value";
         statAvgTotal.textContent = "–";
+        statAvgTotal.className = "stat-value highlight";
         statAvgDelta.textContent = "–";
+        statAvgDelta.className = "stat-value positive";
         statMaxTotal.textContent = "–";
+        statMaxTotal.className = "stat-value positive";
         statMinTotal.textContent = "–";
+        statMinTotal.className = "stat-value negative";
         statCribAvg.textContent = "–";
         statCribMin.textContent = "–";
         statCribMax.textContent = "–";
         cribStatsSection.style.display = "none";
+        setFeedback("");
         const cribSvg = document.getElementById("cribChart");
         if (cribSvg) {
           while (cribSvg.firstChild) cribSvg.removeChild(cribSvg.firstChild);
@@ -1234,6 +1458,144 @@
       function setStatus(message, isError = false) {
         statusEl.textContent = message || "";
         statusEl.classList.toggle("error", !!isError);
+        statusEl.classList.remove("success", "info");
+        if (!isError && message) {
+          statusEl.classList.add("info");
+        }
+      }
+
+      function setFeedback(message, type = "info") {
+        if (!feedbackEl) return;
+        if (!message) {
+          feedbackEl.innerHTML = "";
+          return;
+        }
+        const badge = document.createElement("div");
+        badge.className = `feedback-badge ${type}`;
+        badge.textContent = message;
+        feedbackEl.innerHTML = "";
+        feedbackEl.appendChild(badge);
+      }
+
+      function getCardElement(cardCode) {
+        return cardsEl.querySelector(`[data-card="${cardCode}"]`);
+      }
+
+      function clearScoringHighlights() {
+        cardsEl.querySelectorAll(".card").forEach((el) => {
+          el.classList.remove("scoring-highlight");
+          el.style.transform = "";
+        });
+      }
+
+      async function animateScoring(hand, breakdown) {
+        // Create overlay for score popups
+        const overlay = document.createElement("div");
+        overlay.className = "scoring-overlay";
+        document.body.appendChild(overlay);
+
+        const combinations = [];
+        
+        // Add all scoring combinations
+        breakdown.fifteens.forEach((fifteen) => {
+          combinations.push({
+            type: "15",
+            cards: fifteen.cards,
+            points: fifteen.points,
+            label: "15 for 2",
+          });
+        });
+        
+        breakdown.pairs.forEach((pair) => {
+          combinations.push({
+            type: "pair",
+            cards: pair.cards,
+            points: pair.points,
+            label: "Pair for 2",
+          });
+        });
+        
+        breakdown.runs.forEach((run) => {
+          combinations.push({
+            type: "run",
+            cards: run.cards,
+            points: run.points,
+            label: `Run of ${run.length} for ${run.points}`,
+          });
+        });
+        
+        if (breakdown.flush) {
+          combinations.push({
+            type: "flush",
+            cards: breakdown.flush.cards,
+            points: breakdown.flush.points,
+            label: `Flush for ${breakdown.flush.points}`,
+          });
+        }
+        
+        if (breakdown.knobs) {
+          combinations.push({
+            type: "knobs",
+            cards: [breakdown.knobs.card],
+            points: breakdown.knobs.points,
+            label: "His Nobs for 1",
+          });
+        }
+
+        // Animate each combination
+        for (let i = 0; i < combinations.length; i++) {
+          const combo = combinations[i];
+          
+          // Clear previous highlights
+          clearScoringHighlights();
+          
+          // Wait a bit before highlighting
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          
+          // Highlight cards in this combination
+          combo.cards.forEach((cardCode) => {
+            const cardEl = getCardElement(cardCode);
+            if (cardEl) {
+              cardEl.classList.add("scoring-highlight");
+            }
+          });
+          
+          // Show points popup
+          const popup = document.createElement("div");
+          popup.className = "scoring-popup";
+          popup.textContent = `+${combo.points} ${combo.label}`;
+          overlay.appendChild(popup);
+          
+          // Wait for animation
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          
+          // Remove popup
+          popup.remove();
+        }
+        
+        // Final total
+        clearScoringHighlights();
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        
+        // Highlight all cards for total
+        hand.forEach((cardCode) => {
+          const cardEl = getCardElement(cardCode);
+          if (cardEl) {
+            cardEl.classList.add("scoring-highlight");
+          }
+        });
+        
+        const totalPopup = document.createElement("div");
+        totalPopup.className = "scoring-popup";
+        totalPopup.textContent = `Total: ${breakdown.total} points`;
+        totalPopup.style.color = "#10b981";
+        overlay.appendChild(totalPopup);
+        
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        
+        // Clean up
+        overlay.remove();
+        clearScoringHighlights();
       }
 
       function renderCards() {
@@ -1375,12 +1737,45 @@
             throw new Error(data.error || "Scoring failed");
           }
 
+          // Fetch scoring breakdown for animation (if enabled)
+          if (animationToggle && animationToggle.checked) {
+            try {
+              const breakdownRes = await fetch("/api/score/breakdown", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  hand,
+                  is_crib: false,
+                }),
+              });
+              if (breakdownRes.ok) {
+                const breakdown = await breakdownRes.json();
+                // Animate the scoring
+                await animateScoring(hand, breakdown);
+              }
+            } catch (breakdownErr) {
+              console.error("Breakdown error:", breakdownErr);
+              // Continue even if breakdown fails
+            }
+          }
+
           // Display hand stats immediately
           statBase.textContent = data.base_score.toFixed(0);
-          statAvgTotal.textContent = data.avg_total.toFixed(2);
-          statAvgDelta.textContent = data.avg_delta.toFixed(2);
+          statBase.className = "stat-value";
+          
+          statAvgTotal.textContent = data.avg_total.toFixed(1);
+          statAvgTotal.className = "stat-value highlight";
+          
+          // Format delta with + sign if positive
+          const deltaValue = data.avg_delta.toFixed(1);
+          statAvgDelta.textContent = data.avg_delta >= 0 ? `+${deltaValue}` : deltaValue;
+          statAvgDelta.className = "stat-value positive";
+          
           statMaxTotal.textContent = data.max_total.toFixed(0);
+          statMaxTotal.className = "stat-value positive";
+          
           statMinTotal.textContent = data.min_total.toFixed(0);
+          statMinTotal.className = "stat-value negative";
 
           // Display hand distribution chart
           if (data.hand_distribution) {
@@ -1394,11 +1789,14 @@
           bestKeepSection.style.display = "block";
 
           if (data.is_optimal) {
-            setStatus("🎉 Hooray! Correct keep! 🎉");
+            setFeedback("Perfect! This is the optimal keep", "success");
+            setStatus("");
           } else {
-            setStatus(
-              `Not the best keep. Optimal keep shown below (avg ${data.best_avg_total.toFixed(2)})`
+            setFeedback(
+              `Optimal keep shown below (expected ${data.best_avg_total.toFixed(1)} points)`,
+              "info"
             );
+            setStatus("");
           }
 
           // Now calculate crib stats (slow) in the background
@@ -1414,19 +1812,19 @@
             });
             const cribData = await cribRes.json();
             if (cribRes.ok && cribData.crib_stats) {
-              statCribAvg.textContent = cribData.crib_stats.avg_score.toFixed(2);
+              statCribAvg.textContent = cribData.crib_stats.avg_score.toFixed(1);
+              statCribAvg.className = "stat-value highlight";
               statCribMin.textContent = cribData.crib_stats.min_score.toFixed(0);
+              statCribMin.className = "stat-value negative";
               statCribMax.textContent = cribData.crib_stats.max_score.toFixed(0);
+              statCribMax.className = "stat-value positive";
               cribStatsSection.style.display = "block";
               renderCribChart(
                 cribData.crib_stats.distribution,
                 cribData.crib_stats.avg_score
               );
-              setStatus(
-                data.is_optimal
-                  ? "🎉 Hooray! Correct keep! 🎉"
-                  : `Not the best keep. Optimal keep shown below (avg ${data.best_avg_total.toFixed(2)})`
-              );
+              // Keep the feedback message that was already set
+              setStatus("");
             }
           } catch (cribErr) {
             console.error("Crib stats error:", cribErr);
