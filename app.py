@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 
 from routes import bp
 
@@ -10,6 +11,9 @@ def create_app() -> Flask:
         static_folder="assets",
         static_url_path="/assets",
     )
+
+    # Enable CORS for React Native
+    CORS(app)
 
     # Register main routes / API.
     app.register_blueprint(bp)
