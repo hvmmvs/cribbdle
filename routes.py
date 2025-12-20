@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from typing import List
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, render_template, request
 
 from gameplay import best_keep_from_six, crib_outcome_stats, get_scoring_breakdown, starter_outcome_stats
 
@@ -39,8 +39,8 @@ def _hands_are_equivalent(hand1: List[str], hand2: List[str]) -> bool:
 
 @bp.route("/", methods=["GET"])
 def index():
-    """API health check endpoint."""
-    return jsonify({"status": "ok", "message": "Cribbdle API is running"})
+    """Serve the single-page cribbage UI for web browsers."""
+    return render_template("index.html")
 
 
 @bp.route("/api/deal", methods=["GET"])
